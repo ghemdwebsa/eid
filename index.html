@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي غمد | فعاليات العيد</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-page: #f5eee6;      /* لون الصفحة الفاتح */
+            --primary-brown: #3d2b1f; /* لون الهيدر والفوتر والأزرار */
+            --team-gold: #8b7355;    /* لون الفريق الأول */
+            --team-brown: #5d4037;   /* لون الفريق الثاني */
+            --footer-dark: #322319;
+        }
+
+        body, html {
+            height: 100%; margin: 0;
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-page);
+            display: flex; flex-direction: column;
+        }
+
+        /* الهيدر مطابق لصور المتجر */
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 6%; background-color: var(--primary-brown);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .logo { font-size: 2.2rem; font-weight: 800; color: white; text-decoration: none; }
+        .btn-top { border: 1px solid white; color: white; padding: 6px 18px; border-radius: 5px; text-decoration: none; font-size: 0.85rem; }
+
+        /* توسيط المحتوى في نص الصفحة */
+        .content-area {
+            flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.6); padding: 45px 30px; border-radius: 25px;
+            width: 100%; max-width: 520px; text-align: center;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.04);
+        }
+
+        /* لوحة النقاط */
+        .score-wrap { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
+        .score-item { padding: 10px 20px; border-radius: 12px; color: white; font-weight: 700; transition: 0.4s; flex: 1; }
+        .active-turn { transform: scale(1.08); border: 3px solid #2ecc71; box-shadow: 0 0 15px rgba(46, 204, 113, 0.3); }
+
+        .q-text { font-size: 1.5rem; font-weight: 800; color: var(--primary-brown); margin: 25px 0; line-height: 1.4; }
+
+        /* الأزرار */
+        .opt-btn {
+            display: block; width: 100%; padding: 16px; margin: 12px 0;
+            border: 2px solid var(--primary-brown); background: white; border-radius: 12px;
+            cursor: pointer; font-family: 'Cairo'; font-size: 1.1rem; font-weight: 700; transition: 0.2s;
+        }
+        .correct { background-color: #27ae60 !important; color: white !important; border-color: #27ae60; }
+        .wrong { background-color: #c0392b !important; color: white !important; border-color: #c0392b; }
+
+        /* تركيب الكلمات */
+        .slot-box, .pool-box { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
+        .letter-slot { width: 45px; height: 45px; border-bottom: 3px solid var(--primary-brown); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 800; }
+        .letter-item { background: var(--primary-brown); color: white; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; font-weight: 700; }
+
+        footer { background-color: var(--footer-dark); color: #b5a491; text-align: center; padding: 18px; font-size: 0.9rem; font-weight: 600; }
+        .hidden { display: none; }
+        .btn-start { background: var(--primary-brown); color: white; padding: 15px 60px; border: none; border-radius: 10px; font-size: 1.5rem; cursor: pointer; font-weight: 800; }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="#" class="logo">غِـمْـد</a>
+    <a href="https://ghemdwebsa.github.io/ghemdwebsa/index.html" class="btn-top">زيارة المتجر</a>
+</header>
+
+<div class="content-area">
+    <div id="start-ui" class="card">
+        <h1 style="font-size: 3.2rem; margin-bottom: 5px;">فعاليات العيد</h1>
+        <p style="margin-bottom: 35px; color: var(--team-gold); font-weight: 700;">تحدي الفرق (60 سؤال)</p>
+        <button class="btn-start" onclick="initGame()">ابدأ التحدي</button>
+    </div>
+
+    <div id="game-ui" class="card hidden">
+        <div class="score-wrap">
+            <div id="t1-score" class="score-item" style="background:var(--team-gold)">الذهبي: <span id="s1">0</span></div>
+            <div id="t2-score" class="score-item" style="background:var(--team-brown)">البني: <span id="s2">0</span></div>
+        </div>
+        <div id="turn-label" style="font-weight: 800; margin-bottom: 10px;"></div>
+        <div id="progress" style="font-size: 0.8rem; color: #8b7355; margin-bottom: 10px;"></div>
+        <div class="q-text" id="main-q"></div>
+        
+        <div id="options-area"></div>
+
+        <div id="word-area" class="hidden">
+            <div class="slot-box" id="slots"></div>
+            <div class="pool-box" id="pool"></div>
+            <div style="margin-top: 25px;">
+                <button onclick="renderUI()" style="background:none; border:1px solid #3d2b1f; padding:6px 15px; border-radius:6px; cursor:pointer; font-family:'Cairo';">إعادة المحاولة</button>
+                <button id="next-action" class="hidden" onclick="stepNext()" style="background:#3d2b1f; color:white; border:none; padding:7px 25px; border-radius:6px; cursor:pointer; margin-right:10px; font-family:'Cairo';">التالي</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>جميع الحقوق محفوظة لمتجر غِـمْـد © 2024</footer>
+
+<script>
+// تم تجهيز 60 سؤالاً (20 لكل فقرة)
+const db = {
+    p1: [
+        {q: "كم عدد سُور القرآن الكريم؟", o: ["110", "114", "112"], c: 1},
+        {q: "ما هو أطول نهر في العالم؟", o: ["النيل", "الأمازون", "الدجلة"], c: 0},
+        {q: "ما هو الكوكب الأحمر؟", o: ["زحل", "المريخ", "المشتري"], c: 1},
+        {q: "من هو خاتم الأنبياء والمرسلين؟", o: ["عيسى", "محمد ﷺ", "موسى"], c: 1},
+        {q: "أين يقع المسجد الأقصى؟", o: ["مصر", "فلسطين", "الأردن"], c: 1},
+        {q: "ما هو الشيء الذي يكسو الناس وهو عارٍ؟", o: ["الإبرة", "القلم", "المقص"], c: 0},
+        {q: "كم عدد أركان الإسلام؟", o: ["5", "6", "4"], c: 0},
+        {q: "ما هي عاصمة المملكة العربية السعودية؟", o: ["جدة", "الرياض", "الدمام"], c: 1},
+        {q: "ما هو أضخم حيوان في العالم؟", o: ["الفيل", "الحوت الأزرق", "الزرافة"], c: 1},
+        {q: "ماهو الشيء الذي له أسنان ولا يعض؟", o: ["المشط", "المنشار", "المفتاح"], c: 0},
+        {q: "كم عدد ألوان قوس قزح؟", o: ["5", "7", "8"], c: 1},
+        {q: "ما هو المعدن السائل الوحيد؟", o: ["الحديد", "الزئبق", "النحاس"], c: 1},
+        {q: "في أي قارة تقع مصر؟", o: ["آسيا", "أفريقيا", "أوروبا"], c: 1},
+        {q: "ما هي لغة النمسا الرسمية؟", o: ["الإنجليزية", "الألمانية", "الفرنسية"], c: 1},
+        {q: "كم عدد لاعبي فريق كرة القدم؟", o: ["10", "11", "12"], c: 1},
+        {q: "ما هو أذكى الحيوانات البحرية؟", o: ["القرش", "الدولفين", "الأخطبوط"], c: 1},
+        {q: "ما هو الطائر الذي يضع أكبر بيضة؟", o: ["النعامة", "الصقر", "البومة"], c: 0},
+        {q: "كم عدد ولايات أمريكا؟", o: ["40", "50", "60"], c: 1},
+        {q: "ما هو لون الزمرد؟", o: ["أحمر", "أخضر", "أزرق"], c: 1},
+        {q: "من هو مكتشف الجاذبية؟", o: ["أينشتاين", "نيوتن", "إديسون"], c: 1}
+    ],
+    p2: [
+        {q: "أكمل: القرد في عين أمه ....", o: ["غزال", "بطل", "حلو"], c: 0},
+        {q: "أكمل: اللي ما يطول العنب ....", o: ["ياكله", "يقول حامض", "ينساه"], c: 1},
+        {q: "أكمل: الجار قبل ....", o: ["الدار", "الأهل", "العشاء"], c: 0},
+        {q: "أكمل: القرش الأبيض ينفع في اليوم ....", o: ["المشمس", "الأسود", "الجمعة"], c: 1},
+        {q: "أكمل: من طق الباب لقى ....", o: ["أهله", "الجواب", "البيت"], c: 1},
+        {q: "أكمل: مد لحافك على قد ....", o: ["نومك", "رجولك", "بيتك"], c: 1},
+        {q: "أكمل: الوقت كالسيف إن لم تقطعه ....", o: ["أصابك", "سبقك", "قطعك"], c: 2},
+        {q: "أكمل: الصبر مفتاح ....", o: ["الجنة", "الفرج", "العلم"], c: 1},
+        {q: "أكمل: كل لبيب بالإشارة ....", o: ["يفهم", "يسمع", "يعرف"], c: 0},
+        {q: "أكمل: المكتوب باين من ....", o: ["خطه", "عنوانه", "ورقته"], c: 1},
+        {q: "أكمل: عصفور في اليد ولا عشرة على ....", o: ["الغصن", "الشجرة", "الأرض"], c: 1},
+        {q: "أكمل: خير الكلام ما قل و....", o: ["فعل", "دل", "نال"], c: 1},
+        {q: "أكمل: إذا كان الكلام من فضة فالسكوت من ....", o: ["ذهب", "ياقوت", "ماس"], c: 0},
+        {q: "أكمل: اطلبوا العلم ولو في ....", o: ["الهند", "اليابان", "الصين"], c: 2},
+        {q: "أكمل: لولا اختلاف الأذواق لبارت ....", o: ["السلع", "الأرض", "العقول"], c: 0},
+        {q: "أكمل: يداك أوكتا و....", o: ["رجلك سعت", "فوك نفخ", "عينك رأت"], c: 1},
+        {q: "أكمل: اتقِ شر من .... إليه", o: ["ذهبت", "أحسنت", "تكلمت"], c: 1},
+        {q: "أكمل: ما هقيتها منك يا ....", o: ["فلان", "الذيب", "خوي"], c: 1},
+        {q: "أكمل: العلم في الصغر كالنقش على ....", o: ["الحجر", "الرمل", "الماء"], c: 0},
+        {q: "أكمل: جاك يا مهنا ما ....", o: ["تمنيت", "اشتهيت", "ارتقيت"], c: 0}
+    ],
+    p3: [
+        {w: "عيد", h: "مناسبة نحتفل بها الآن"}, {w: "قهوة", h: "مشروب الضيوف الأول"},
+        {w: "غمد", h: "اسم متجرنا وبيت السيف"}, {w: "بخور", h: "رائحة زكية في المجالس"},
+        {w: "عيدية", h: "مال يقدم للأطفال"}, {w: "حلاوة", h: "توزع في العيد"},
+        {w: "مبخره", h: "تستخدم للتطيب"}, {w: "سيف", h: "رمز القوة والأصالة"},
+        {w: "نخلة", h: "شعار الكرم والمملكة"}, {w: "تمر", h: "يقدم مع القهوة"},
+        {w: "خيمة", h: "مجلس التراث في البر"}, {w: "عرضه", h: "رقصة شعبية سعودية"},
+        {w: "صقور", h: "طيور يفتخر بها العرب"}, {w: "هلال", h: "بظهوره نعرف العيد"},
+        {w: "فرحة", h: "شعورنا اليوم"}, {w: "زمزم", h: "ماء مبارك"},
+        {w: "كعبة", h: "قبلة المسلمين"}, {w: "رمال", h: "تغطي الصحراء"},
+        {w: "ناقة", h: "سفينة الصحراء"}, {w: "مصحف", h: "كتاب الله الكريم"}
+    ]
+};
+
+let phase = 1, index = 0, turn = 1, s1 = 0, s2 = 0;
+
+function initGame() {
+    document.getElementById('start-ui').classList.add('hidden');
+    document.getElementById('game-ui').classList.remove('hidden');
+    renderUI();
+}
+
+function renderUI() {
+    const turnLbl = document.getElementById('turn-label');
+    const optArea = document.getElementById('options-area');
+    const wordArea = document.getElementById('word-area');
+    
+    document.getElementById('t1-score').className = turn===1 ? 'score-item active-turn' : 'score-item';
+    document.getElementById('t2-score').className = turn===2 ? 'score-item active-turn' : 'score-item';
+    turnLbl.innerText = turn===1 ? "دور الفريق الذهبي" : "دور الفريق البني";
+    turnLbl.style.color = turn===1 ? "var(--team-gold)" : "var(--team-brown)";
+
+    optArea.innerHTML = ''; wordArea.classList.add('hidden');
+    let list = (phase===1) ? db.p1 : (phase===2 ? db.p2 : db.p3);
+    let item = list[index];
+
+    document.getElementById('progress').innerText = `المرحلة ${phase} | السؤال ${index+1} من 20`;
+    document.getElementById('main-q').innerText = (phase===3) ? item.h : item.q;
+
+    if(phase < 3) {
+        item.o.forEach((o, i) => {
+            let b = document.createElement('button'); b.className = 'opt-btn'; b.innerText = o;
+            b.onclick = () => {
+                if(i === item.c) { b.classList.add('correct'); if(turn===1)s1++; else s2++; }
+                else b.classList.add('wrong');
+                syncScores(); setTimeout(stepNext, 800);
+            };
+            optArea.appendChild(b);
+        });
+    } else {
+        wordArea.classList.remove('hidden');
+        buildWordGame(item.w);
+    }
+}
+
+function buildWordGame(word) {
+    const slots = document.getElementById('slots'); const pool = document.getElementById('pool');
+    slots.innerHTML = ''; pool.innerHTML = ''; document.getElementById('next-action').classList.add('hidden');
+    
+    word.split('').sort(()=>Math.random()-0.5).forEach(c => {
+        let t = document.createElement('div'); t.className = 'letter-item'; t.innerText = c;
+        t.onclick = () => {
+            let empty = [...slots.children].find(s => s.innerText === '');
+            if(empty) {
+                empty.innerText = c; t.style.visibility = 'hidden';
+                if([...slots.children].every(s => s.innerText !== '')) {
+                    if([...slots.children].map(s=>s.innerText).join('') === word) {
+                        if(turn===1)s1++; else s2++; syncScores();
+                        document.getElementById('next-action').classList.remove('hidden');
+                    }
+                }
+            }
+        };
+        pool.appendChild(t);
+    });
+    for(let i=0; i<word.length; i++) {
+        let s = document.createElement('div'); s.className = 'letter-slot'; slots.appendChild(s);
+    }
+}
+
+function syncScores() {
+    document.getElementById('s1').innerText = s1; document.getElementById('s2').innerText = s2;
+}
+
+function stepNext() {
+    index++; turn = (turn === 1) ? 2 : 1;
+    if(index >= 20) { index = 0; phase++; }
+    if(phase > 3) return showWinner();
+    renderUI();
+}
+
+function showWinner() {
+    const winnerName = s1 > s2 ? "الفريق الذهبي" : (s2 > s1 ? "الفريق البني" : "تعادل الفريقين!");
+    document.getElementById('game-ui').innerHTML = `<h1 style="font-size:2.5rem">انتهى التحدي!</h1><h2 style="color:#d35400">الفائز: ${winnerName}</h2><p>كل عام وأنتم بخير من أسرة غمد</p>`;
+}
+</script>
+</body>
+</html>
